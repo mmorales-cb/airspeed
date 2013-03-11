@@ -118,7 +118,7 @@ class CachingFileLoader:
     def load_template(self, name):
         if self.debugging: print("Loading template...", name)
         mtime = os.path.getmtime(self.filename_of(name))
-        if self.known_templates.has_key(name):
+        if name in self.known_templates:
             template, prev_mtime = self.known_templates[name]
             if mtime <= prev_mtime:
                 if self.debugging: print("loading parsed template from cache")
@@ -781,7 +781,7 @@ class MacroDefinition(_Element):
     def evaluate(self, stream, namespace, loader):
         global_ns = namespace.top()
         macro_key = '#' + self.macro_name.lower()
-        if global_ns.has_key(macro_key):
+        if macro_key in global_ns:
             raise Exception("cannot redefine macro")
         global_ns[macro_key] = self
 
