@@ -2,7 +2,7 @@
 
 import re, operator, os
 
-import StringIO   # cStringIO has issues with unicode
+import io   # cStringIO has issues with unicode
 
 __all__ = ['Template', 'TemplateError', 'TemplateSyntaxError', 'CachingFileLoader']
 
@@ -10,9 +10,9 @@ __all__ = ['Template', 'TemplateError', 'TemplateSyntaxError', 'CachingFileLoade
 ###############################################################################
 # Compatibility for old Pythons & Jython
 ###############################################################################
-try: True
-except NameError:
-    False, True = 0, 1
+#try: True
+#except NameError:
+#    False, True = 0, 1
 try: dict
 except NameError:
     from UserDict import UserDict
@@ -104,40 +104,40 @@ class CachingFileLoader:
         self.basedir = basedir
         self.known_templates = {} # name -> (template, file_mod_time)
         self.debugging = debugging
-        if debugging: print "creating caching file loader with basedir:", basedir
+        if debugging: print("creating caching file loader with basedir:", basedir)
 
     def filename_of(self, name):
         return os.path.join(self.basedir, name)
 
     def load_text(self, name):
-        if self.debugging: print "Loading text from", self.basedir, name
+        if self.debugging: print("Loading text from", self.basedir, name)
         f = open(self.filename_of(name))
         try: return f.read()
         finally: f.close()
 
     def load_template(self, name):
-        if self.debugging: print "Loading template...", name,
+        if self.debugging: print("Loading template...", name)
         mtime = os.path.getmtime(self.filename_of(name))
         if self.known_templates.has_key(name):
             template, prev_mtime = self.known_templates[name]
             if mtime <= prev_mtime:
-                if self.debugging: print "loading parsed template from cache"
+                if self.debugging: print("loading parsed template from cache")
                 return template
-        if self.debugging: print "loading text from disk"
+        if self.debugging: print("loading text from disk")
         template = Template(self.load_text(name))
         template.ensure_compiled()
         self.known_templates[name] = (template, mtime)
         return template
 
 
-class StoppableStream(StringIO.StringIO):
+class StoppableStream(io.StringIO):
     def __init__(self, buf=''):
         self.stop = False
-        StringIO.StringIO.__init__(self, buf)
+        io.StringIO.__init__(self, buf)
 
     def write(self, s):
         if not self.stop:
-            StringIO.StringIO.write(self, s)
+            io.StringIO.write(self, s)
 
 
 ###############################################################################
@@ -549,7 +549,7 @@ class BinaryOperator(_Element):
                  '+' : operator.add,
                  '-' : operator.sub,
                  '*' : operator.mul,
-                 '/' : operator.div}
+                 '/' : operator.truediv}
     PRECEDENCE = { '>'  : 2, '<'  : 2, '==': 2, '>=' : 2, '<=' : 2, '!=': 2,
                    '||' : 1, '&&' : 1, 'or': 1, 'and': 1,
                    '+'  : 3, '-'  : 3, '*' : 3, '/'  : 3, '%': 3}
@@ -639,7 +639,7 @@ class Expression(_Element):
             stack_calculate(opstack, valuestack, namespace, loader)
 
         if len(valuestack) != 1:
-            print "evaluation of expression in Condition.calculate is messed up: final length of stack is not one"
+            print("evaluation of expression in Condition.calculate is messed up: final length of stack is not one")
             #TODO handle this officially
 
         result = valuestack[0]
